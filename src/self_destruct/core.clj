@@ -1,5 +1,6 @@
 (ns self-destruct.core
-  (:require [self-destruct.route :as route])
+  (:require [self-destruct.config :as config]
+            [self-destruct.route  :as route])
   (:require [ring.adapter.jetty             :as    jetty]
             [ring.middleware.defaults       :refer :all]
             [ring.middleware.webjars        :refer [wrap-webjars]]
@@ -9,7 +10,7 @@
   (:gen-class))
 
 
-;; (config/configure-logging)
+(config/configure-logging)
 
 
 (def app

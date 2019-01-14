@@ -2,4 +2,4 @@
   (:require [hugsql.core :as hugsql]))
 
 
-(hugsql/def-db-fns "self-destruct/message/sql/message.sql")
+(hugsql/def-db-fns "self_destruct/message/sql/message.sql")

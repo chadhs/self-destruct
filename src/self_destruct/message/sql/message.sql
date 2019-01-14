@@ -1,4 +1,4 @@
--- src/self-destruct/message/sql/message.sql
+-- src/self_destruct/message/sql/message.sql
 -- self-destruct message queries
 
 

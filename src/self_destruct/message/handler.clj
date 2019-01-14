@@ -10,7 +10,8 @@
   (let [message    (get-in req [:params :message])
         message-id (message.model/create-message! db-url {:message message})]
     (timbre/info (str "message created: " (util/uuid->str message-id)))
-    (response/redirect (str "/list/" list-id))))
+    ;; return the link here
+    (response/redirect "/")))
 
 
 (defn handle-delete-message! [req]
