@@ -1,22 +1,11 @@
 * design
 ** data
-   FIXME
+   a single simple table containing a uuid, text, and creation timestamp.
    #+BEGIN_SRC clojure
-     (def table1
-       {
-	:id       :uuid
-	:email    :varchar64
-	:password :varchar128
-	:date_created :timestamptz
-	}
-       )
-
-     (def table2
+     (def message
        {
 	:id           :uuid
-	:account_id   :uuid
-	:service_id   :varchar64
-	:is_member    :boolean
+	:message      :text
 	:date_created :timestamptz
 	}
        )

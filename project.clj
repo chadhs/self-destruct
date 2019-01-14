@@ -68,7 +68,8 @@
   :uberjar-name "self-destruct.jar"
 
 
-  :prep-tasks ["clean" ["garden" "once"] "compile"]
+  ;; :prep-tasks ["clean" ["garden" "once"] "compile"]
+  :prep-tasks ["clean" ["garden" "once"]]
 
 
   :aliases {"dev" ["pdo" ["garden" "auto"] ["ring" "server"]]}
