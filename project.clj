@@ -24,7 +24,7 @@
                  [ring/ring-defaults "0.3.2"]
                  ;;; hosted assests
                  [ring-webjars "0.2.0"]
-                 [org.webjars/font-awesome "5.6.1"]]
+                 [org.webjars/font-awesome "5.6.3"]]
 
 
   :plugins [[lein-environ "1.1.0"]

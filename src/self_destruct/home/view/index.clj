@@ -6,8 +6,6 @@
 (defn home-page []
   (home.view.layout/page-layout
    (html
-
-
     [:div#tagline
      "coming soon..."]
 
