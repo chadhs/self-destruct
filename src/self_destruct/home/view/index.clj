@@ -1,14 +1,32 @@
 (ns self-destruct.home.view.index
   (:require [self-destruct.home.view.layout :as home.view.layout])
-  (:require [hiccup.core :refer [html]]))
+  (:require [hiccup.core            :refer [html]]
+            [ring.util.anti-forgery :as    anti-forgery]))
+
+
+(defn new-message []
+  (html
+   [:form
+    {:method "POST" :action "/message/create"}
+    (anti-forgery/anti-forgery-field)
+    [:textarea
+     {:name :message
+      :rows 24
+      :cols 96
+      :placeholder "Message"
+      :autofocus true}]
+    [:br]
+    [:input
+     {:type :submit
+      :value "Create"}]]))
 
 
 (defn home-page []
   (home.view.layout/page-layout
    (html
     [:div#tagline
-     "coming soon..."]
+     "create read-once, self-destructing, messages."]
 
-    [:p.content
-     "run your own self destucting note service"]
-    )))
+    [:div.content
+     [:h2 "Create a new message"]
+     (new-message)])))
