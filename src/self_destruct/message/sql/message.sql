@@ -4,8 +4,8 @@
 
 -- :name create-message! :? :n
 -- :doc insert a message item, returning the id, thus the ? in the name rather than ! for execute
-insert into message (name)
-values (:name)
+insert into message (message)
+values (:message)
 returning id
 
 
@@ -17,5 +17,5 @@ where id = :message-id
 
 -- :name read-message :? :n
 -- :doc get a message by id
-select id, name, date_created from message
+select id, message, date_created from message
 where id = :message-id
