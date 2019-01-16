@@ -11,14 +11,18 @@
     (anti-forgery/anti-forgery-field)
     [:textarea
      {:name :message
-      :rows 24
-      :cols 96
+      :rows 16
+      :cols 72
       :placeholder "Message"
       :autofocus true}]
     [:br]
-    [:input
-     {:type :submit
-      :value "Create"}]]))
+    [:button
+     {:type :submit}
+     "Create"]
+    [:button
+     {:type :reset}
+     "Clear"]
+    ]))
 
 
 (defn home-page []

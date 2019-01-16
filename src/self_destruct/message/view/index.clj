@@ -12,4 +12,9 @@
     [:div.content
      [:p "This message has been deleted, please make note of it before closing this window."]
      [:p "Message:"]
-     [:p (str message)]])))
+     [:textarea
+      {:name :message
+       :rows 16
+       :cols 72
+       :placeholder (str message)
+       :autofocus true}]])))
