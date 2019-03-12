@@ -6,4 +6,5 @@
 (defroutes message-routes
   (POST "/message/create"             [] message.handler/handle-create-message!)
   (POST "/message/delete/:message-id" [] message.handler/handle-delete-message!)
+  (GET  "/message/link/:message-id"   [] message.handler/handle-view-message-link)
   (GET  "/message/fetch/:message-id"  [] message.handler/handle-fetch-message))

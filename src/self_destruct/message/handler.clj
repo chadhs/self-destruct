@@ -13,7 +13,7 @@
         message-id (message.model/create-message! db-url {:message message})]
     (do
       (timbre/info (str "message created: " (util/uuid->str message-id)))
-      (message.view.link/link-page (util/uuid->str message-id)))))
+      (response/redirect (str "/message/link/" (util/uuid->str message-id))))))
 
 
 (defn handle-delete-message! [req]
@@ -26,6 +26,11 @@
       (do
         (timbre/error (str "message delete failed message id not found: " message-id))
         (response/not-found "Message not found.")))))
+
+
+(defn handle-view-message-link [req]
+  (let [message-id (java.util.UUID/fromString (:message-id (:route-params req)))]
+    (message.view.link/link-page message-id)))
 
 
 (defn handle-fetch-message [req]

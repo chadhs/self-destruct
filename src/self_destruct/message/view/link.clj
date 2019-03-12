@@ -7,9 +7,7 @@
   (let [message-link (str "/message/fetch/" message-id)]
     (home.view.layout/page-layout
      (html
-      [:div#tagline
-       "create read-once, self-destructing, messages."]
-
       [:div.content
-       [:p "Send this link to the recipient, the message can only be viewed ONCE."]
+       [:p "Send a link to THIS page to the recipient and NOT the link below."]
+       [:p "The message can only be viewed ONCE."]
        [:p [:a {:href message-link} "message link"]]]))))
