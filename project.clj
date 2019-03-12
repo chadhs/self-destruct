@@ -1,7 +1,7 @@
 (defproject self-destruct "0.1.0-SNAPSHOT"
   :description "run your own self destucting note service"
   :url "http://github.com/chadhs/self-destruct"
-  :min-lein-version "2.0.0"
+  :min-lein-version "2.8.3"
   :dependencies [[org.clojure/clojure "1.10.0"]
                  ;;; core
                  [ring "1.7.1"]
@@ -12,7 +12,7 @@
                  ;;; database
                  [com.layerware/hugsql "0.4.9"]
                  [org.postgresql/postgresql "42.2.5"]
-                 [migratus "1.2.0"]
+                 [migratus "1.2.1"]
                  ;;; logging
                  [com.taoensso/timbre "4.10.0"]
                  [raven-clj "1.5.2"] ; timbre sentry support
@@ -25,12 +25,12 @@
                  [ring/ring-defaults "0.3.2"]
                  ;;; hosted assests
                  [ring-webjars "0.2.0"]
-                 [org.webjars/font-awesome "5.6.3"]]
+                 [org.webjars/font-awesome "5.7.1"]]
 
 
   :plugins [[lein-environ "1.1.0"]
-            [lein-ring "0.12.4"]
-            [migratus-lein "0.7.0"]
+            [lein-ring "0.12.5"]
+            [migratus-lein "0.7.1"]
             [lein-garden "0.3.0"]
             [lein-pdo "0.1.1"]]
 
