@@ -8,6 +8,6 @@
     (home.view.layout/page-layout
      (html
       [:div.content
-       [:p "Send a link to THIS page to the recipient and NOT the link below."]
-       [:p "The message can only be viewed ONCE."]
-       [:p [:a {:href message-link} "message link"]]]))))
+       [:p "Send a link to " [:strong "THIS"] " page to the recipient and " [:strong "NOT"] " the link below."]
+       [:p "The message can only be viewed " [:strong "ONCE"] "."]
+       [:p [:a.button {:href message-link} "click to reveal message"]]]))))
