@@ -107,14 +107,4 @@
    :a:hover.button
    :a:visited.button
    {:text-decoration "none"
-    :color (colors :text)}]
-
-  ;; [:input (garden.selectors/attr= :type :submit)
-  ;;  {:padding "5px 15px"
-  ;;   :background "#ccc"
-  ;;   :border "0 none"
-  ;;   :cursor "pointer"
-  ;;   :-webkit-border-radius "5px"
-  ;;   :border-radius "5px"}]
-
-  )
+    :color (colors :button-text)}])
