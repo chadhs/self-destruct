@@ -19,7 +19,7 @@
       ;; csrf protection, session data, url parameters, static assets, and more
       (wrap-defaults
        (-> site-defaults
-           ;; (assoc-in [:session :store] (cookie-store {:key config/session-cookie-key}))
+           (assoc-in [:session :store] (cookie-store {:key config/session-cookie-key}))
            (assoc-in [:session :cookie-attrs] {:max-age 3600})))
       wrap-webjars ; set path for webjar assets
       (wrap-resource "public")))
