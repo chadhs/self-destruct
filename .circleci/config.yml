@@ -7,7 +7,7 @@ jobs:
   build:
     docker:
       # specify the version you desire here
-      - image: circleci/clojure:lein-2.7.1
+      - image: circleci/clojure:lein-2.9.0
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -43,12 +43,16 @@ jobs:
           key: v1-dependencies-{{ checksum "project.clj" }}
 
       # run tests!
-      - run: lein test
+      - run:
+          name: run leiningen tests
+          environment:
+            DATABASE_URL: "jdbc:postgresql://self-destruct:@localhost:5432/self-destruct-test"
+          command: lein test
 
   deploy-prod:
     working_directory: ~/self-destruct
     docker:
-      - image: circleci/clojure:lein-2.7.1
+      - image: circleci/clojure:lein-2.9.0
     steps:
       - checkout
       - run:
@@ -57,10 +61,6 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "7e:f6:06:60:8b:d5:b3:e9:76:d7:9a:1f:fd:c4:d2:aa"
-      - run:
-          name: apply db migrations
-          command: |
-            heroku run -a self-destructing lein migratus migrate
 
 
 workflows:
@@ -68,12 +68,6 @@ workflows:
   build-deploy:
     jobs:
       - build
-      # - deploy-stage:
-      #     requires:
-      #       - build
-      #     filters:
-      #       branches:
-      #         only: staging
       - deploy-prod:
           requires:
             - build

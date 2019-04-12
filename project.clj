@@ -36,7 +36,8 @@
 
 
   :ring {:handler self-destruct.core/app
-         :port 8000}
+         :port 8000
+         :auto-refresh? true}
 
 
   :garden {:builds [{:source-paths ["src"]
@@ -54,13 +55,16 @@
              :db ~(get (System/getenv) "DATABASE_URL")}
 
 
-  :profiles {:uberjar {:aot :all}
-             :dev {
-                   :main self-destruct.core/-dev-main
-                   :dependencies [[javax.servlet/servlet-api "2.5"] ; do i need?
-                                  [ring/ring-mock "0.3.2"]]}
-             :test {:dependencies[[javax.servlet/servlet-api "2.5"]
-                                  [ring/ring-mock "0.3.2"]]}}
+  :profiles {:uberjar {:aot :all
+                       :env {:secure-defaults "true"}}
+             :dev  [:project/dev  :profiles/dev]
+             :test [:project/test :profiles/test]
+             ;; only edit :profiles/* in profiles.clj
+             :profiles/dev  {}
+             :profiles/test {}
+             :project/dev {:main self-destruct.core/-dev-main
+                           :dependencies [[ring/ring-mock "0.3.2"]]}
+             :project/test {:dependencies[[ring/ring-mock "0.3.2"]]}}
 
 
   :main self-destruct.core
