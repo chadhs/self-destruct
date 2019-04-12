@@ -11,10 +11,13 @@
 
     [:div.content
      [:p "This message has been deleted, please make note of it before closing this window."]
+
      [:p "Message:"]
      [:textarea
       {:name :message
        :rows 16
        :cols 72
-       :placeholder (str message)
-       :autofocus true}]])))
+       :autofocus true}
+      (str message)]
+
+     [:p [:a.button {:href "/"} "create another message"]]])))
