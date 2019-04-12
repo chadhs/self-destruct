@@ -17,6 +17,7 @@ jobs:
           POSTGRES_USER: self-destruct
           POSTGRES_DB: self-destruct-test
           POSTGRES_PASSWORD: ""
+          DATABASE_URL: "jdbc:postgresql://self-destruct:@postgres:5432/self-destruct-test"
 
     working_directory: ~/self-destruct
 
@@ -43,7 +44,7 @@ jobs:
           key: v1-dependencies-{{ checksum "project.clj" }}
 
       # run tests!
-      - run: lein with-profile test migratus migrate && lein test
+      - run: lein test
 
   deploy-prod:
     working_directory: ~/self-destruct
