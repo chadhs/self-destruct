@@ -17,7 +17,7 @@ jobs:
           POSTGRES_USER: self-destruct
           POSTGRES_DB: self-destruct-test
           POSTGRES_PASSWORD: ""
-          DATABASE_URL: "jdbc:postgresql://localhost/self-destruct-test"
+          DATABASE_URL: "jdbc:postgresql://self-destruct:@localhost/self-destruct-test"
 
     working_directory: ~/self-destruct
 
