@@ -1,5 +1,6 @@
 (ns self-destruct.config
   (:require [environ.core                               :as environ]
+            [migratus.core                              :as migratus]
             [taoensso.timbre                            :as timbre]
             [taoensso.timbre.appenders.3rd-party.sentry :as sentry]))
 
@@ -7,6 +8,17 @@
 ;; database config
 (def db-url
   (environ/env :database-url))
+
+
+;; migrations
+(def db-migration-config
+  {:store         :database
+   :migration-dir "migrations"
+   :db            db-url})
+
+(defn run-db-migration []
+  ;; apply pending migrations
+  (migratus/migrate db-migration-config))
 
 
 ;; session cookie security config

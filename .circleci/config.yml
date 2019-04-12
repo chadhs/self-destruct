@@ -57,10 +57,6 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "7e:f6:06:60:8b:d5:b3:e9:76:d7:9a:1f:fd:c4:d2:aa"
-      - run:
-          name: apply db migrations
-          command: |
-            heroku run -a self-destructing lein migratus migrate
 
 
 workflows:
@@ -68,12 +64,6 @@ workflows:
   build-deploy:
     jobs:
       - build
-      # - deploy-stage:
-      #     requires:
-      #       - build
-      #     filters:
-      #       branches:
-      #         only: staging
       - deploy-prod:
           requires:
             - build
