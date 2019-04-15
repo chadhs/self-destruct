@@ -9,12 +9,10 @@
    :link         "blue"
    :button       "#157FFB"
    :button-hover "#106CD6"
-   :button-text  "#fff"
-   })
+   :button-text  "#fff"})
 
 
 (defstyles style
-
   [:html
    {:background-color (colors :background)
     :font-size        "16px"}]

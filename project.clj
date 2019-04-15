@@ -5,7 +5,6 @@
   :dependencies [[org.clojure/clojure "1.10.0"]
                  ;;; core
                  [ring "1.7.1"]
-                 [ring/ring-mock "0.3.2"]
                  [compojure "1.6.1"]
                  ;;; environment
                  [environ "1.1.0"]
@@ -73,7 +72,6 @@
   :uberjar-name "self-destruct.jar"
 
 
-  ;; :prep-tasks ["clean" ["garden" "once"] "compile"]
   :prep-tasks ["clean" ["garden" "once"]]
 
 
