@@ -11,7 +11,7 @@
                  ;;; database
                  [com.layerware/hugsql "0.4.9"]
                  [org.postgresql/postgresql "42.2.5"]
-                 [migratus "1.2.1"]
+                 [migratus "1.2.3"]
                  ;;; logging
                  [com.taoensso/timbre "4.10.0"]
                  [raven-clj "1.5.2"] ; timbre sentry support
@@ -19,17 +19,17 @@
                  [buddy "2.0.0"]
                  ;;; ui
                  [hiccup "1.0.5"]
-                 [garden "1.3.6"]
+                 [garden "1.3.9"]
                  ;;; middleware
                  [ring/ring-defaults "0.3.2"]
                  ;;; hosted assests
                  [ring-webjars "0.2.0"]
-                 [org.webjars/font-awesome "5.7.1"]]
+                 [org.webjars/font-awesome "5.8.2"]]
 
 
   :plugins [[lein-environ "1.1.0"]
             [lein-ring "0.12.5"]
-            [migratus-lein "0.7.1"]
+            [migratus-lein "0.7.2"]
             [lein-garden "0.3.0"]
             [lein-pdo "0.1.1"]]
 
@@ -58,12 +58,15 @@
                        :env {:secure-defaults "true"}}
              :dev  [:project/dev  :profiles/dev]
              :test [:project/test :profiles/test]
+             :prod [:project/prod :profiles/prod ]
              ;; only edit :profiles/* in profiles.clj
              :profiles/dev  {}
              :profiles/test {}
+             :profiles/prod {}
              :project/dev {:main self-destruct.core/-dev-main
                            :dependencies [[ring/ring-mock "0.3.2"]]}
-             :project/test {:dependencies[[ring/ring-mock "0.3.2"]]}}
+             :project/test {:dependencies[[ring/ring-mock "0.3.2"]]}
+             :project/prod {}}
 
 
   :main self-destruct.core
@@ -72,10 +75,11 @@
   :uberjar-name "self-destruct.jar"
 
 
-  :prep-tasks ["clean" ["garden" "once"]]
+  :prep-tasks ["clean" ["garden" "once"] "compile"]
 
 
-  :aliases {"dev" ["pdo" ["garden" "auto"] ["ring" "server"]]}
+  :aliases {"migrate" ["migratus" "migrate"]
+            "dev"     ["pdo" ["garden" "auto"] ["ring" "server"]]}
 
 
   )
