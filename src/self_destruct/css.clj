@@ -102,6 +102,7 @@
     :color (colors :button-text)}]
 
   [:a.button
+   :a:link.site-title
    :a:hover.button
    :a:visited.button
    {:text-decoration "none"
