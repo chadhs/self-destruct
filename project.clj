@@ -35,7 +35,7 @@
             [lein-pdo "0.1.1"]]
 
 
-  :ring {:init mutual-note.core/init
+  :ring {:init self-destruct.core/init
          :handler self-destruct.core/app
          :port 8000
          :auto-refresh? true}
