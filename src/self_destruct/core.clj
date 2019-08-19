@@ -11,10 +11,16 @@
   (:gen-class))
 
 
-(config/configure-logging)
-(config/run-db-migration)
+;; calls to load before main app handler
+(defn init []
+  (do
+    ;; load logging configuration prior to app load
+    (config/configure-logging)
+    ;; run database migrations prior to app load
+    (config/run-db-migration)))
 
 
+;; define main application
 (def app
   (-> route/combined-routes
       ;; wrap-defaults includes ring middleware in the correct order to provide:
@@ -30,13 +36,23 @@
       wrap-webjars))
 
 
+;; main application entry point
 (defn -main
   ([]     (-main 8000))
-  ([port] (jetty/run-jetty app
-                           {:port (Integer. port)})))
+  ([port] (do
+            (timbre/info "running init tasks")
+            (init)
+            (timbre/info (str "starting the app on port " port "..."))
+            (jetty/run-jetty app
+                             {:port (Integer. port)}))))
 
 
+;; development mode main application entry point
 (defn -dev-main
   ([]     (-dev-main 8000))
-  ([port] (jetty/run-jetty (wrap-reload #'app)
-                           {:port (Integer. port)})))
+  ([port] (do
+            (timbre/info "DEV: running init tasks")
+            (init)
+            (timbre/info (str "DEV: starting the app on port " port "..."))
+            (jetty/run-jetty (wrap-reload #'app)
+                             {:port (Integer. port)}))))
