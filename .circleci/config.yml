@@ -48,29 +48,3 @@ jobs:
           environment:
             DATABASE_URL: "jdbc:postgresql://self-destruct:@localhost:5432/self-destruct-test"
           command: lein test
-
-  # deploy-prod:
-  #   working_directory: ~/self-destruct
-  #   docker:
-  #     - image: circleci/clojure:lein-2.9.0
-  #   steps:
-  #     - checkout
-  #     - run:
-  #         name: setup heroku
-  #         command: bash .circleci/setup-heroku.sh
-  #     - add_ssh_keys:
-  #         fingerprints:
-  #           - "7e:f6:06:60:8b:d5:b3:e9:76:d7:9a:1f:fd:c4:d2:aa"
-
-
-# workflows:
-#   version: 2
-#   build-deploy:
-#     jobs:
-#       - build
-#       - deploy-prod:
-#           requires:
-#             - build
-#           filters:
-#             branches:
-#               only: master
