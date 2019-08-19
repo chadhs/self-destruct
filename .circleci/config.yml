@@ -74,3 +74,13 @@ workflows:
           filters:
             branches:
               only: master
+  build-deploy-from-feature-branch:
+    jobs:
+      - build
+      - deploy-prod:
+          requires:
+            - build
+          type: approval
+          filters:
+            branches:
+              ignore: master
