@@ -31,7 +31,7 @@
        (-> (if (= "true" (environ/env :secure-defaults))
              secure-site-defaults
              site-defaults)
-           (assoc-in [:session :store] (cookie-store {:key config/session-cookie-key}))
+           (assoc-in [:session :store] (cookie-store {:key (config/session-cookie-key)}))
            (assoc-in [:session :cookie-attrs] {:max-age 3600})
            (assoc :proxy true)))
       ;; set path for webjar assets

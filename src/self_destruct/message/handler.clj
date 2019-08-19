@@ -10,7 +10,7 @@
 
 (defn handle-create-message! [req]
   (let [message    (get-in req [:params :message])
-        message-id (message.model/create-message! db-url {:message message})]
+        message-id (message.model/create-message! (db-url) {:message message})]
     (do
       (timbre/info (str "message created: " (util/uuid->str message-id)))
       (response/redirect (str "/message/link/" (util/uuid->str message-id))))))
@@ -18,7 +18,7 @@
 
 (defn handle-delete-message! [req]
   (let [message-id (java.util.UUID/fromString (:message-id (:route-params req)))
-        exists? (message.model/delete-message! db-url {:message-id message-id})]
+        exists? (message.model/delete-message! (db-url) {:message-id message-id})]
     (if exists?
       (do
         (timbre/info (str "message deleted: " message-id))
@@ -35,8 +35,8 @@
 
 (defn handle-fetch-message [req]
   (let [message-id (java.util.UUID/fromString (:message-id (:route-params req)))
-        message    (message.model/read-message db-url {:message-id message-id})
-        deleted?   (message.model/delete-message! db-url {:message-id message-id})]
+        message    (message.model/read-message (db-url) {:message-id message-id})
+        deleted?   (message.model/delete-message! (db-url) {:message-id message-id})]
     (if (and message deleted?)
       (do
         (timbre/info (str "message accessed: " message-id))
