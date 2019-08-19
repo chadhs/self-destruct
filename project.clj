@@ -8,6 +8,7 @@
                  [compojure "1.6.1"]
                  ;;; environment
                  [environ "1.1.0"]
+                 [org.clojure/tools.cli "0.4.2"]
                  ;;; database
                  [com.layerware/hugsql "0.4.9"]
                  [org.postgresql/postgresql "42.2.5"]
