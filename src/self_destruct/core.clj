@@ -80,7 +80,7 @@
         (init)
         (timbre/info (str "starting the app on port " port "..."))
         (jetty/run-jetty app
-                         {:port (Integer. port)})))))
+                         {:port (Integer/valueOf port)})))))
 
 
 ;; development mode main application entry point
@@ -92,4 +92,4 @@
       (init)
       (timbre/info (str "DEV: starting the app on port " port "..."))
       (jetty/run-jetty (wrap-reload #'app)
-                       {:port (Integer. port)}))))
+                       {:port (Integer/valueOf port)}))))
