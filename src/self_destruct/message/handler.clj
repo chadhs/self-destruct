@@ -1,28 +1,73 @@
 (ns self-destruct.message.handler
-  (:require [self-destruct.config             :refer [db-url]]
-            [self-destruct.message.model      :as    message.model]
-            [self-destruct.util.core          :as    util]
-            [self-destruct.message.view.index :as    message.view.index]
-            [self-destruct.message.view.link  :as    message.view.link])
+  (:require [self-destruct.config             :as config]
+            [self-destruct.message.model      :as message.model]
+            [self-destruct.util.core          :as util]
+            [self-destruct.message.view.index :as message.view.index]
+            [self-destruct.message.view.link  :as message.view.link])
   (:require [ring.util.response :as response]
+            [buddy.core.crypto  :as crypto]
+            [buddy.core.codecs  :as codecs]
+            [buddy.core.nonce   :as nonce]
+            [buddy.core.hash    :as hash]
             [taoensso.timbre    :as timbre]))
 
 
+;; helpers
+(defn encrypt-message
+  "takes a message, encryption key, and initialization vector;
+  encrypts and hex encodes message for easy database storage"
+  [{:keys [message encryption-key iv]}]
+  (let [encryption-key (hash/sha256 encryption-key)]
+    (-> message
+        codecs/to-bytes
+        (crypto/encrypt encryption-key iv {:algorithm :aes128-cbc-hmac-sha256})
+        codecs/bytes->hex)))
+
+
+(defn decrypt-message
+  "takes a message, encryption key, and initialization vector;
+  hex decodes and decrypts stored message"
+  [{:keys [message encryption-key iv]}]
+  (let [encryption-key (hash/sha256 encryption-key)]
+    (-> message
+        codecs/hex->bytes
+        (crypto/decrypt encryption-key iv {:algorithm :aes128-cbc-hmac-sha256})
+        codecs/bytes->str)))
+
+
+;; handlers
 (defn handle-create-message! [req]
-  (let [message    (get-in req [:params :message])
-        message-id (message.model/create-message! (db-url) {:message message})]
-    (do
-      (timbre/info (str "message created: " (util/uuid->str message-id)))
-      (response/redirect (str "/message/link/" (util/uuid->str message-id))))))
+  (let [referer           (get-in req [:headers "referer"])
+        message           (get-in req [:params :message])
+        message-iv        (nonce/random-bytes 16)
+        message-iv-hex    (codecs/bytes->hex message-iv)
+        encrypted-message (encrypt-message {:message message
+                                            :encryption-key (config/db-encryption-key)
+                                            :iv message-iv})
+        message-id        (message.model/create-message!
+                           (config/db-url) {:message encrypted-message
+                                            :message-iv message-iv-hex})]
+    (if message-id
+      (do
+        (timbre/info (str "message created: " (util/uuid->str message-id)))
+        ;; we use the referer to ensure relative links target the proxy, not the cluster ip
+        (response/redirect (str referer "message/link/" (util/uuid->str message-id))))
+      (do
+        (timbre/error (str "message creation failed..."))
+        {:status 500
+         :headers {"Content-Type" "application/json"}
+         :body "{\"error\": \"message creation failed...\"}"}))))
 
 
 (defn handle-delete-message! [req]
-  (let [message-id (java.util.UUID/fromString (:message-id (:route-params req)))
-        exists? (message.model/delete-message! (db-url) {:message-id message-id})]
+  (let [referer    (get-in req [:headers "referer"])
+        message-id (java.util.UUID/fromString (:message-id (:route-params req)))
+        exists?    (message.model/delete-message!
+                    (config/db-url) {:message-id message-id})]
     (if exists?
       (do
         (timbre/info (str "message deleted: " message-id))
-        (response/redirect "/"))
+        (response/redirect (str referer "/")))
       (do
         (timbre/error (str "message delete failed message id not found: " message-id))
         (response/not-found "Message not found.")))))
@@ -34,14 +79,19 @@
 
 
 (defn handle-fetch-message [req]
-  (let [message-id (java.util.UUID/fromString (:message-id (:route-params req)))
-        message    (message.model/read-message (db-url) {:message-id message-id})
-        deleted?   (message.model/delete-message! (db-url) {:message-id message-id})]
+  (let [message-id   (java.util.UUID/fromString (:message-id (:route-params req)))
+        message      (message.model/read-message (config/db-url) {:message-id message-id})
+        message-text (when message (message :message))
+        deleted?     (message.model/delete-message! (config/db-url) {:message-id message-id})
+        message-iv   (when message (codecs/hex->bytes (message :message_iv)))
+        decrypted-message (when message (decrypt-message {:message message-text
+                                                          :encryption-key (config/db-encryption-key)
+                                                          :iv message-iv}))]
     (if (and message deleted?)
       (do
         (timbre/info (str "message accessed: " message-id))
         (timbre/info (str "message deleted: " message-id))
-        (message.view.index/message-page (message :message)))
+        (message.view.index/message-page decrypted-message))
       (do
         (timbre/error (str "failed to fetch message: " message-id))
         (message.view.index/message-page "Message not found.")))))

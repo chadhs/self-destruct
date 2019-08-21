@@ -9,6 +9,9 @@
 (defn db-url []
   (environ/env :database-url))
 
+(defn db-encryption-key []
+  (environ/env :database-encryption-key))
+
 
 ;; migrations
 (defn db-migration-config []

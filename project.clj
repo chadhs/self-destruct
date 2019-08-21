@@ -81,7 +81,7 @@
 
 
   :aliases {"migrate" ["migratus" "migrate"]
-            "dev"     ["pdo" ["garden" "auto"] ["ring" "server"]]}
+            "dev"     ["pdo" ["garden" "auto"] ["ring" "server-headless"]]}
 
 
   )
