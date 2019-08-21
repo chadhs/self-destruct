@@ -63,6 +63,7 @@
    you'll need to load the following environment variables in your production environment:
 
    - ~DATABASE_URL~
+   - ~DATABASE_ENCRYPTION_KEY~
    - ~PORT~
    - ~SESSION_COOKIE_KEY~
 
