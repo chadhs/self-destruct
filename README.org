@@ -23,12 +23,12 @@
 
     #+BEGIN_SRC sh
       createdb self-destruct-dev
-      lein migratus migrate
+      lein migrate
     #+END_SRC
 
 *** One alias to rule them all
 
-    This alias should do all that is necessary in one step for local development.
+    This alias should do all that is necessary in one step for local development, once migrations have been run.
 
     #+BEGIN_SRC sh
       lein dev

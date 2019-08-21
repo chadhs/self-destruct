@@ -17,9 +17,7 @@
 (defn init []
   (do
     ;; load logging configuration prior to app load
-    (config/configure-logging)
-    ;; run database migrations prior to app load
-    (config/run-db-migration)))
+    (config/configure-logging)))
 
 
 ;; define main application
