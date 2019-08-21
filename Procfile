@@ -1,1 +1,1 @@
-web: java $JVM_OPTS -cp target/self-destruct.jar --port $PORT
+web: java $JVM_OPTS -jar target/self-destruct.jar --port $PORT
