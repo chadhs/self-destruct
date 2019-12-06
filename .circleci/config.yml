@@ -17,6 +17,9 @@ jobs:
           POSTGRES_USER: self-destruct
           POSTGRES_DB: self-destruct-test
           POSTGRES_PASSWORD: ""
+          # POSTGRES_HOST: postgres
+          DATABASE_ENCRYPTION_KEY: "changemedbkey1"
+          SESSION_COOKIE_KEY: "changecookiekey1"
 
     working_directory: ~/self-destruct
 

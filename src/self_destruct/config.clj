@@ -24,6 +24,19 @@
   (migratus/migrate (db-migration-config)))
 
 
+;; jetty config
+(defn jetty-https-config [port]
+  {:ssl?           true
+   :ssl-port       (Integer/valueOf port)
+   :keystore       (environ/env :keystore)
+   :truststore     (environ/env :truststore)
+   :key-password   "changeit"
+   :trust-password "changeit"})
+
+(defn jetty-http-config [port]
+  {:port (Integer/valueOf port)})
+
+
 ;; session cookie security config
 (defn session-cookie-key []
   (environ/env :session-cookie-key))

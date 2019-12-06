@@ -19,3 +19,9 @@ where id = :message-id
 -- :doc get a message by id
 select id, message, message_iv, date_created from message
 where id = :message-id
+
+
+-- :name expire-and-purge-messages! :! :n
+-- :doc remove messages from database that have not been read in :expire_minutes
+delete from message
+where date_created < now() - :expire-minutes::interval

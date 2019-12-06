@@ -1,6 +1,7 @@
 (ns self-destruct.core
   (:require [self-destruct.config :as config]
-            [self-destruct.route  :as route])
+            [self-destruct.route  :as route]
+            [self-destruct.worker :as worker])
   (:require [clojure.tools.cli              :refer [parse-opts]]
             [environ.core                   :as    environ]
             [ring.adapter.jetty             :as    jetty]
@@ -17,7 +18,9 @@
 (defn init []
   (do
     ;; load logging configuration prior to app load
-    (config/configure-logging)))
+    (config/configure-logging)
+    ;; kick off worker processes
+    (worker/launch-workers)))
 
 
 ;; define main application
@@ -29,6 +32,7 @@
        (-> (if (= "true" (environ/env :secure-defaults))
              secure-site-defaults
              site-defaults)
+           ;; (assoc-in [:security :anti-forgery] false)
            (assoc-in [:session :store] (cookie-store {:key (config/session-cookie-key)}))
            (assoc-in [:session :cookie-attrs] {:max-age 3600})
            (assoc :proxy true)))

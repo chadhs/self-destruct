@@ -17,12 +17,16 @@
                  [com.taoensso/timbre "4.10.0"]
                  [raven-clj "1.5.2"] ; timbre sentry support
                  ;;; security
-                 [buddy "2.0.0"]
+                 [buddy/buddy-core "1.6.0"]
                  ;;; ui
                  [hiccup "1.0.5"]
                  [garden "1.3.9"]
                  ;;; middleware
                  [ring/ring-defaults "0.3.2"]
+                 ;;; data
+                 [cheshire "5.8.1"]
+                 ;;; scheduling
+                 [tea-time "1.0.1"]
                  ;;; hosted assests
                  [ring-webjars "0.2.0"]
                  [org.webjars/font-awesome "5.8.2"]]
@@ -66,8 +70,8 @@
              :profiles/test {}
              :profiles/prod {}
              :project/dev {:main self-destruct.core/-dev-main
-                           :dependencies [[ring/ring-mock "0.3.2"]]}
-             :project/test {:dependencies[[ring/ring-mock "0.3.2"]]}
+                           :dependencies [[ring/ring-mock "0.4.0"]]}
+             :project/test {:dependencies[[ring/ring-mock "0.4.0"]]}
              :project/prod {}}
 
 
