@@ -57,6 +57,11 @@
       ./run-tests-local.sh
     #+END_SRC
 
+** Continuous Integration
+
+   Pull requests and pushes to ~master~ run on GitHub Actions (~.github/workflows/ci.yml~):
+   Postgres service, ~lein migrate~, then ~lein test~.
+
 
 ** Database Migrations
 
