@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: selfdestruct
+          POSTGRES_PASSWORD: selfdestruct
+          POSTGRES_DB: self-destruct-test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U selfdestruct -d self-destruct-test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      LEIN_ROOT: "true"
+      JVM_OPTS: -Xmx2g
+      DATABASE_URL: jdbc:postgresql://localhost:5432/self-destruct-test?user=selfdestruct&password=selfdestruct
+      DATABASE_ENCRYPTION_KEY: changemedbkey2
+      SESSION_COOKIE_KEY: changecookiekey2
+      DISABLE_ANTI_FORGERY: "true"
+      ENABLE_WORKERS: "false"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Clojure / Leiningen
+        uses: DeLaGuardo/setup-clojure@13.6.1
+        with:
+          # 2.13.0 currently fails to install via setup-clojure; stay on 2.12.x
+          lein: 2.12.0
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('project.clj') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Install dependencies
+        run: lein deps
+
+      - name: Run database migrations
+        run: lein migrate
+
+      - name: Run tests
+        run: lein test
