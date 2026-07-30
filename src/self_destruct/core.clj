@@ -7,7 +7,6 @@
             [ring.adapter.jetty             :as    jetty]
             [ring.middleware.defaults       :refer :all]
             [ring.middleware.webjars        :refer [wrap-webjars]]
-            [ring.middleware.resource       :refer [wrap-resource]]
             [ring.middleware.reload         :refer [wrap-reload]]
             [ring.middleware.session.cookie :refer [cookie-store]]
             [taoensso.timbre                :as    timbre])
@@ -32,7 +31,9 @@
        (-> (if (= "true" (environ/env :secure-defaults))
              secure-site-defaults
              site-defaults)
-           ;; (assoc-in [:security :anti-forgery] false)
+           ;; allow tests to disable csrf; remains enabled for normal app use
+           (assoc-in [:security :anti-forgery]
+                     (not= "true" (environ/env :disable-anti-forgery)))
            (assoc-in [:session :store] (cookie-store {:key (config/session-cookie-key)}))
            (assoc-in [:session :cookie-attrs] {:max-age 3600})
            (assoc :proxy true)))
@@ -58,6 +59,8 @@
 (defn -main [& args]
   (let [{:keys [options arguments summary errors]} (parse-opts args cli-options)
         port   (:port options)]
+    ;; configure logging for all entrypoints (help/migrate/server)
+    (config/configure-logging)
     (cond
       errors
       (do
@@ -79,7 +82,8 @@
       :else
       (do
         (timbre/info "running init tasks")
-        (init)
+        ;; workers only; logging already configured above
+        (worker/launch-workers)
         (timbre/info (str "starting the app on port " port "..."))
         (jetty/run-jetty app
                          {:port (Integer/valueOf port)})))))

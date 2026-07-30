@@ -3,7 +3,8 @@
             [self-destruct.message.handler :as    message.handler])
   (:require [clojure.test      :refer :all]
             [ring.mock.request :as    mock]
-            [buddy.core.nonce  :as    nonce]))
+            [buddy.core.nonce  :as    nonce]
+            [cheshire.core     :as    json]))
 
 
 (deftest test-static-app-routes
@@ -16,8 +17,10 @@
       (is (= 404 (:status response)))))
 
   (testing "health route"
-    (let [response (app (mock/request :get "/health"))]
-      (is (= 200 (:status response)))))
+    (let [response (app (mock/request :get "/health"))
+          body     (json/parse-string (:body response) true)]
+      (is (= 200 (:status response)))
+      (is (true? (:healthy body)))))
 
   (testing "home route"
     (let [response (app (mock/request :get "/home"))]
@@ -41,3 +44,18 @@
 
     (testing "decrypt message"
       (is (= message decrypted-message)))))
+
+
+(deftest test-create-message-validation
+  (testing "blank message is rejected"
+    (let [response (app (-> (mock/request :post "/message/create")
+                            (mock/body {:message "   "})))]
+      (is (= 400 (:status response)))))
+
+  (testing "invalid message id returns not found on link route"
+    (let [response (app (mock/request :get "/message/link/not-a-uuid"))]
+      (is (= 404 (:status response)))))
+
+  (testing "invalid message id returns not found on fetch route"
+    (let [response (app (mock/request :get "/message/fetch/not-a-uuid"))]
+      (is (= 404 (:status response))))))

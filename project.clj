@@ -57,7 +57,8 @@
 
   :migratus {:store :database
              :migration-dir "migrations"
-             :db ~(get (System/getenv) "DATABASE_URL")}
+             :db {:connection-uri ~(or (System/getenv "DATABASE_URL")
+                                       "jdbc:postgresql://localhost:5432/self-destruct-dev?user=selfdestruct&password=selfdestruct")}}
 
 
   :profiles {:uberjar {:aot :all

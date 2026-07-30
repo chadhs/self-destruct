@@ -3,4 +3,3 @@
 
 
 (hugsql/def-db-fns "self_destruct/test/helper/sql/helper.sql")
-(ns self-destruct.test.helper.db)

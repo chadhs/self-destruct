@@ -2,7 +2,7 @@
 -- self-destruct health queries
 
 
--- :name deep-health :? :n
+-- :name deep-health :? :1
 -- :doc verify db access
 select exists (
   select 1
