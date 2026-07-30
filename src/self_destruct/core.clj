@@ -55,31 +55,40 @@
    ["-h" "--help"]])
 
 
+(defn- handle-cli-options
+  "Handle --help/--migrate. Returns an exit code when the process should
+  stop, or nil when the HTTP server should start."
+  [{:keys [options summary errors]}]
+  (cond
+    errors
+    (do
+      (timbre/error errors)
+      (timbre/info summary)
+      1)
+
+    (:help options)
+    (do
+      (timbre/info summary)
+      0)
+
+    (:migrate options)
+    (do
+      (timbre/info "running database migrations...")
+      (config/run-db-migration)
+      0)
+
+    :else
+    nil))
+
+
 ;; main application entry point
 (defn -main [& args]
-  (let [{:keys [options arguments summary errors]} (parse-opts args cli-options)
-        port   (:port options)]
+  (let [parsed (parse-opts args cli-options)
+        port   (get-in parsed [:options :port])]
     ;; configure logging for all entrypoints (help/migrate/server)
     (config/configure-logging)
-    (cond
-      errors
-      (do
-        (timbre/error errors)
-        (timbre/info summary)
-        (System/exit 1))
-
-      (:help options)
-      (do
-        (timbre/info summary)
-        (System/exit 0))
-
-      (:migrate options)
-      (do
-        (timbre/info "running database migrations...")
-        (config/run-db-migration)
-        (System/exit 0))
-
-      :else
+    (if-let [exit-code (handle-cli-options parsed)]
+      (System/exit exit-code)
       (do
         (timbre/info "running init tasks")
         ;; workers only; logging already configured above
@@ -91,11 +100,15 @@
 
 ;; development mode main application entry point
 (defn -dev-main [& args]
-  (let [{:keys [options arguments summary errors]} (parse-opts args cli-options)
-        port   (:port options)]
-    (do
-      (timbre/info "DEV: running init tasks")
-      (init)
-      (timbre/info (str "DEV: starting the app on port " port "..."))
-      (jetty/run-jetty (wrap-reload #'app)
-                       {:port (Integer/valueOf port)}))))
+  (let [parsed (parse-opts args cli-options)
+        port   (get-in parsed [:options :port])]
+    (config/configure-logging)
+    ;; honor --help/--migrate in dev as well (lein run defaults to -dev-main)
+    (if-let [exit-code (handle-cli-options parsed)]
+      (System/exit exit-code)
+      (do
+        (timbre/info "DEV: running init tasks")
+        (worker/launch-workers)
+        (timbre/info (str "DEV: starting the app on port " port "..."))
+        (jetty/run-jetty (wrap-reload #'app)
+                         {:port (Integer/valueOf port)})))))

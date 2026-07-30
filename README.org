@@ -4,7 +4,7 @@
 
 ** Prerequisites
 
-   You will need [[https://github.com/technomancy/leiningen][Leiningen]] 2.0.0 or above installed.
+   You will need [[https://github.com/technomancy/leiningen][Leiningen]] 2.11.0 or above installed (2.12.x recommended).
 
 
 ** Development Mode
@@ -68,8 +68,9 @@
    - the clojure migratus library is used to handle db schema changes.
    - migrations are located in the ~resources/migrations~ folder.
    - to create a new migration ~lein migratus create <descriptive-name>~ and then edit the ~up~ and ~down~ files created.
-   - migrations are applied via ~lein migrate~ (local) or ~java -jar self-destruct.jar --migrate~ (production / Heroku release phase).
+   - migrations are applied via ~lein migrate~ (local; runs the app ~--migrate~ CLI) or ~java -jar self-destruct.jar --migrate~ (production / Heroku release phase).
    - for local development set ~DATABASE_URL~ to a JDBC URL Postgres will accept over TCP.
+   - ~SESSION_COOKIE_KEY~ should be a 16-character/byte secret (Ring cookie session store).
 
 
 ** Production Setup
