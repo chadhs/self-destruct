@@ -1,1 +1,5 @@
-web: java $JVM_OPTS -cp target/self-destruct.jar clojure.main -m self-destruct.core $PORT
+# main app
+web: java $JVM_OPTS -jar target/self-destruct.jar --port $PORT
+
+# run db migrations before release
+release: java $JVM_OPTS -jar target/self-destruct.jar --migrate

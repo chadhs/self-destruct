@@ -8,6 +8,7 @@
                  [compojure "1.6.1"]
                  ;;; environment
                  [environ "1.1.0"]
+                 [org.clojure/tools.cli "0.4.2"]
                  ;;; database
                  [com.layerware/hugsql "0.4.9"]
                  [org.postgresql/postgresql "42.2.5"]
@@ -16,12 +17,16 @@
                  [com.taoensso/timbre "4.10.0"]
                  [raven-clj "1.5.2"] ; timbre sentry support
                  ;;; security
-                 [buddy "2.0.0"]
+                 [buddy/buddy-core "1.6.0"]
                  ;;; ui
                  [hiccup "1.0.5"]
                  [garden "1.3.9"]
                  ;;; middleware
                  [ring/ring-defaults "0.3.2"]
+                 ;;; data
+                 [cheshire "5.8.1"]
+                 ;;; scheduling
+                 [tea-time "1.0.1"]
                  ;;; hosted assests
                  [ring-webjars "0.2.0"]
                  [org.webjars/font-awesome "5.8.2"]]
@@ -34,7 +39,8 @@
             [lein-pdo "0.1.1"]]
 
 
-  :ring {:handler self-destruct.core/app
+  :ring {:init self-destruct.core/init
+         :handler self-destruct.core/app
          :port 8000
          :auto-refresh? true}
 
@@ -51,7 +57,8 @@
 
   :migratus {:store :database
              :migration-dir "migrations"
-             :db ~(get (System/getenv) "DATABASE_URL")}
+             :db {:connection-uri ~(or (System/getenv "DATABASE_URL")
+                                       "jdbc:postgresql://localhost:5432/self-destruct-dev?user=selfdestruct&password=selfdestruct")}}
 
 
   :profiles {:uberjar {:aot :all
@@ -64,8 +71,8 @@
              :profiles/test {}
              :profiles/prod {}
              :project/dev {:main self-destruct.core/-dev-main
-                           :dependencies [[ring/ring-mock "0.3.2"]]}
-             :project/test {:dependencies[[ring/ring-mock "0.3.2"]]}
+                           :dependencies [[ring/ring-mock "0.4.0"]]}
+             :project/test {:dependencies[[ring/ring-mock "0.4.0"]]}
              :project/prod {}}
 
 
@@ -79,7 +86,7 @@
 
 
   :aliases {"migrate" ["migratus" "migrate"]
-            "dev"     ["pdo" ["garden" "auto"] ["ring" "server"]]}
+            "dev"     ["pdo" ["garden" "auto"] ["ring" "server-headless"]]}
 
 
   )

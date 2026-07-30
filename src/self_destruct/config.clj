@@ -6,32 +6,48 @@
 
 
 ;; database config
-(def db-url
+(defn db-url []
   (environ/env :database-url))
+
+(defn db-encryption-key []
+  (environ/env :database-encryption-key))
 
 
 ;; migrations
-(def db-migration-config
+(defn db-migration-config []
   {:store         :database
    :migration-dir "migrations"
-   :db            db-url})
+   :db            (db-url)})
 
 (defn run-db-migration []
   ;; apply pending migrations
-  (migratus/migrate db-migration-config))
+  (migratus/migrate (db-migration-config)))
+
+
+;; jetty config
+(defn jetty-https-config [port]
+  {:ssl?           true
+   :ssl-port       (Integer/valueOf port)
+   :keystore       (environ/env :keystore)
+   :truststore     (environ/env :truststore)
+   :key-password   "changeit"
+   :trust-password "changeit"})
+
+(defn jetty-http-config [port]
+  {:port (Integer/valueOf port)})
 
 
 ;; session cookie security config
-(def session-cookie-key
+(defn session-cookie-key []
   (environ/env :session-cookie-key))
 
 
 ;; logging config
-(def reported-log-level
+(defn reported-log-level []
   (keyword (or (environ/env :reported-log-level) "warn")))
 
 
-(def log-appender
+(defn log-appender []
   (or (environ/env :log-appender) "println"))
 
 
@@ -39,8 +55,8 @@
   (timbre/merge-config!
    {:appenders
     (cond
-      (= "println" log-appender) {:println {:output-fn :inherit}}
-      (= "sentry" log-appender)  {:sentry-appender
-                                  (merge
-                                   (sentry/sentry-appender (environ/env :sentry-dsn))
-                                   {:min-level reported-log-level})})}))
+      (= "println" (log-appender)) {:println {:output-fn :inherit}}
+      (= "sentry" (log-appender))  {:sentry-appender
+                                    (merge
+                                     (sentry/sentry-appender (environ/env :sentry-dsn))
+                                     {:min-level (reported-log-level)})})}))

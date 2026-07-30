@@ -19,16 +19,19 @@
 
 *** Setup Local Development Database
 
-    self-destruct uses postgresql; you'll need this availalbe for local dev.  to create a local dev database run the following commands.
+    self-destruct uses postgresql; you'll need this available for local dev.  to create a local dev database run the following commands.
 
     #+BEGIN_SRC sh
       createdb self-destruct-dev
-      lein migratus migrate
+      export DATABASE_URL=jdbc:postgresql://localhost:5432/self-destruct-dev?user=USER&password=PASSWORD
+      lein migrate
     #+END_SRC
+
+    JDBC connections typically need a username/password (peer auth via Unix sockets is not used). Update ~profiles.clj~ and ~DATABASE_URL~ to match your local Postgres role.
 
 *** One alias to rule them all
 
-    This alias should do all that is necessary in one step for local development.
+    This alias should do all that is necessary in one step for local development, once migrations have been run.
 
     #+BEGIN_SRC sh
       lein dev
@@ -48,14 +51,20 @@
       lein garden auto
     #+END_SRC
 
+*** Running Tests
+
+    #+BEGIN_SRC sh
+      ./run-tests-local.sh
+    #+END_SRC
+
 
 ** Database Migrations
 
    - the clojure migratus library is used to handle db schema changes.
    - migrations are located in the ~resources/migrations~ folder.
    - to create a new migration ~lein migratus create <descriptive-name>~ and then edit the ~up~ and ~down~ files created.
-   - migrations are applied automatically see config.clj and core.clj
-   - to manually apply migrations to your local dev instance ~lein migratus migrate~
+   - migrations are applied via ~lein migrate~ (local) or ~java -jar self-destruct.jar --migrate~ (production / Heroku release phase).
+   - for local development set ~DATABASE_URL~ to a JDBC URL Postgres will accept over TCP.
 
 
 ** Production Setup
@@ -63,14 +72,18 @@
    you'll need to load the following environment variables in your production environment:
 
    - ~DATABASE_URL~
+   - ~DATABASE_ENCRYPTION_KEY~
    - ~PORT~
    - ~SESSION_COOKIE_KEY~
 
    optionally you can customize the following variables in your production environment:
 
-   - ~REPORTED_LOG_LEVEL~ (defaults to "warn"; set's min level to write to production log)
+   - ~REPORTED_LOG_LEVEL~ (defaults to "warn"; sets min level to write to production log when using Sentry)
    - ~LOG_APPENDER~ (options "println" "sentry")
    - ~SENTRY_DSN~ (required only if you've set log-appender to "sentry")
+   - ~ENABLE_WORKERS~ (defaults to enabled; set to ~false~ to disable background workers)
+   - ~MESSAGE_EXPIRE_MINUTES~ (defaults to ~1440~ / 24 hours)
+   - ~WORKER_DELAY_SECONDS~ (defaults to ~3600~ / 1 hour)
 
 
 ** License
