@@ -81,12 +81,15 @@
    - Migratus handles schema changes; files live in ~resources/migrations~.
    - Create a migration with ~lein migratus create <descriptive-name>~, then edit the ~up~ / ~down~ SQL.
    - Apply migrations with ~lein migrate~ (runs the app ~--migrate~ CLI) or
-     ~java -jar self-destruct.jar --migrate~ (production / Heroku release phase).
+     ~java -jar target/self-destruct.jar --migrate~ in production.
 
 
 ** Production Setup
 
-   Required environment variables:
+   Primary target is a FreeBSD home server. See [[file:DEPLOYMENT_FREEBSD.md][DEPLOYMENT_FREEBSD.md]]
+   for install, ~rc.d~, nginx, certbot, and backup scripts under ~scripts/~.
+
+   Required environment variables (also listed in [[file:.env.example][.env.example]]):
 
    - ~DATABASE_URL~
    - ~DATABASE_ENCRYPTION_KEY~
@@ -95,12 +98,14 @@
 
    Optional:
 
+   - ~HOST~ (e.g. ~127.0.0.1~ so Jetty only accepts local/nginx traffic)
    - ~REPORTED_LOG_LEVEL~ (defaults to ~warn~; min level for Sentry when enabled)
    - ~LOG_APPENDER~ (~println~ or ~sentry~)
    - ~SENTRY_DSN~ (required only when ~LOG_APPENDER=sentry~)
    - ~ENABLE_WORKERS~ (defaults to enabled; set ~false~ to disable background workers)
    - ~MESSAGE_EXPIRE_MINUTES~ (defaults to ~1440~ / 24 hours)
    - ~WORKER_DELAY_SECONDS~ (defaults to ~3600~ / 1 hour)
+   - ~SECURE_DEFAULTS~ (set ~true~ to use Ring ~secure-site-defaults~)
 
 
 ** License

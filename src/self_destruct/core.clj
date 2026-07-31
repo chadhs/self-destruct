@@ -2,7 +2,8 @@
   (:require [self-destruct.config :as config]
             [self-destruct.route  :as route]
             [self-destruct.worker :as worker])
-  (:require [clojure.tools.cli              :refer [parse-opts]]
+  (:require [clojure.string                 :as    str]
+            [clojure.tools.cli              :refer [parse-opts]]
             [environ.core                   :as    environ]
             [ring.adapter.jetty             :as    jetty]
             [ring.middleware.defaults       :refer :all]
@@ -81,6 +82,16 @@
     nil))
 
 
+(defn- jetty-options
+  "Build Jetty options from CLI port and optional HOST env (e.g. 127.0.0.1)."
+  [port]
+  (let [host (environ/env :host)
+        opts {:port (Integer/valueOf port)}]
+    (if (and host (not (str/blank? host)))
+      (assoc opts :host host)
+      opts)))
+
+
 ;; main application entry point
 (defn -main [& args]
   (let [parsed (parse-opts args cli-options)
@@ -93,9 +104,11 @@
         (timbre/info "running init tasks")
         ;; workers only; logging already configured above
         (worker/launch-workers)
-        (timbre/info (str "starting the app on port " port "..."))
-        (jetty/run-jetty app
-                         {:port (Integer/valueOf port)})))))
+        (timbre/info (str "starting the app on port " port
+                          (when-let [host (environ/env :host)]
+                            (str " host " host))
+                          "..."))
+        (jetty/run-jetty app (jetty-options port))))))
 
 
 ;; development mode main application entry point
@@ -111,4 +124,4 @@
         (worker/launch-workers)
         (timbre/info (str "DEV: starting the app on port " port "..."))
         (jetty/run-jetty (wrap-reload #'app)
-                         {:port (Integer/valueOf port)})))))
+                         (jetty-options port))))))

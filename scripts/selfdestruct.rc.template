@@ -1,0 +1,85 @@
+#!/bin/sh
+#
+# PROVIDE: selfdestruct
+# REQUIRE: LOGIN postgresql
+# KEYWORD: shutdown
+#
+# Add the following lines to /etc/rc.conf to enable selfdestruct:
+# selfdestruct_enable="YES"
+#
+
+. /etc/rc.subr
+
+name="selfdestruct"
+rcvar="selfdestruct_enable"
+
+user="selfdestruct"
+group="selfdestruct"
+
+selfdestruct_chdir="/home/selfdestruct/self-destruct"
+selfdestruct_env="LANG=en_US.UTF-8"
+
+pidfile="/var/run/selfdestruct.pid"
+logfile="/var/log/selfdestruct.log"
+
+start_cmd="selfdestruct_start"
+stop_cmd="selfdestruct_stop"
+status_cmd="selfdestruct_status"
+
+selfdestruct_start()
+{
+    echo "Starting ${name}."
+
+    if [ ! -f /home/selfdestruct/self-destruct/scripts/start-app.sh ]; then
+        echo "Error: start-app.sh script not found"
+        return 1
+    fi
+
+    su ${user} -c "cd /home/selfdestruct/self-destruct && nohup ./scripts/start-app.sh > ${logfile} 2>&1 &"
+
+    sleep 5
+
+    PID=$(pgrep -f "java.*self-destruct.jar")
+    if [ -n "$PID" ]; then
+        echo "$PID" > ${pidfile}
+        echo "${name} started with PID $PID."
+    else
+        echo "Failed to start ${name}."
+        return 1
+    fi
+}
+
+selfdestruct_stop()
+{
+    if [ -f ${pidfile} ]; then
+        PID=$(cat ${pidfile})
+        echo "Stopping ${name} (PID: $PID)."
+        kill $PID
+        rm -f ${pidfile}
+    else
+        echo "${name} is not running (no pidfile found)."
+        PID=$(pgrep -f "java.*self-destruct.jar")
+        if [ -n "$PID" ]; then
+            echo "Found orphaned ${name} process (PID: $PID), killing it."
+            kill $PID
+        fi
+    fi
+}
+
+selfdestruct_status()
+{
+    if [ -f ${pidfile} ]; then
+        PID=$(cat ${pidfile})
+        if kill -0 $PID 2>/dev/null; then
+            echo "${name} is running as pid $PID."
+        else
+            echo "${name} is not running (stale pidfile)."
+            rm -f ${pidfile}
+        fi
+    else
+        echo "${name} is not running."
+    fi
+}
+
+load_rc_config $name
+run_rc_command "$1"
