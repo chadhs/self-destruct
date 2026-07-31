@@ -19,8 +19,9 @@
       cp dev.env.example .env
     #+END_SRC
 
-    ~.env~ is gitignored. Use ~./scripts/with-env.sh ...~ to load it before
-    ~clj~ commands, or export the variables in your shell. The example includes:
+    ~.env~ is gitignored. On startup the app loads it automatically for any
+    variables not already set in the process environment (so exported env vars
+    and CI/production still win). The example includes:
 
     - ~DATABASE_URL~ — JDBC URL with user/password (not Unix peer auth)
     - ~DATABASE_ENCRYPTION_KEY~ — key used to encrypt messages at rest
@@ -36,7 +37,7 @@
       createuser selfdestruct
       psql -c "ALTER USER selfdestruct WITH PASSWORD 'selfdestruct';"
       createdb -O selfdestruct self-destruct-dev
-      ./scripts/with-env.sh clj -M:migrate
+      clj -M:migrate
     #+END_SRC
 
     If you use a different role, update ~DATABASE_URL~ in ~.env~. JDBC connections
@@ -47,7 +48,7 @@
     After migrations have been applied:
 
     #+BEGIN_SRC sh
-      ./scripts/with-env.sh clj -M:dev-main
+      clj -M:dev-main
     #+END_SRC
 
     That starts Garden CSS auto-compile and the Ring server (default port 8000).
@@ -55,8 +56,8 @@
     Equivalent pieces if you prefer to run them separately:
 
     #+BEGIN_SRC sh
-      ./scripts/with-env.sh clj -M:css watch
-      ./scripts/with-env.sh clj -M:run -- --port 8000
+      clj -M:css watch
+      clj -M:run -- --port 8000
     #+END_SRC
 
     ~:run~ uses the production entrypoint (~-main~). ~:dev-main~ uses
@@ -84,7 +85,7 @@
    - Migratus handles schema changes; files live in ~resources/migrations~.
    - Create a new pair of ~*.up.sql~ / ~*.down.sql~ files under ~resources/migrations~
      (timestamp prefix, e.g. ~20260731120000-add-thing.up.sql~).
-   - Apply migrations with ~./scripts/with-env.sh clj -M:migrate~ or
+   - Apply migrations with ~clj -M:migrate~ or
      ~java -jar target/self-destruct.jar --migrate~ in production.
 
 
