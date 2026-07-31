@@ -4,51 +4,59 @@
 
 ** Prerequisites
 
-   You will need [[https://github.com/technomancy/leiningen][Leiningen]] 2.11.0 or above installed (2.12.x recommended).
+   - [[https://adoptium.net/][Java]] 17 or newer (21 recommended; required by Ring / Jetty 12)
+   - [[https://github.com/technomancy/leiningen][Leiningen]] 2.11.0 or newer (2.12.x recommended)
+   - PostgreSQL available over TCP with a role/password your JDBC URL can use
 
 
 ** Development Mode
 
 *** Set Environment Variables & Secrets
 
-    Copy the example file, and update the values.
+    Copy the example file, then edit values to match your machine:
 
     #+BEGIN_SRC sh
       cp profiles_example.clj profiles.clj
     #+END_SRC
 
+    ~profiles.clj~ is gitignored. The example includes local defaults for:
+
+    - ~DATABASE_URL~ — JDBC URL with user/password (not Unix peer auth)
+    - ~DATABASE_ENCRYPTION_KEY~ — key used to encrypt messages at rest
+    - ~SESSION_COOKIE_KEY~ — must be exactly 16 characters/bytes
+    - ~ENABLE_WORKERS~ — set ~false~ locally unless you want the expiry worker running
+
 *** Setup Local Development Database
 
-    self-destruct uses postgresql; you'll need this available for local dev.  to create a local dev database run the following commands.
+    Create a Postgres role and database that match ~profiles.clj~ (example uses
+    user/password ~selfdestruct~ / ~selfdestruct~):
 
     #+BEGIN_SRC sh
-      createdb self-destruct-dev
-      export DATABASE_URL=jdbc:postgresql://localhost:5432/self-destruct-dev?user=USER&password=PASSWORD
+      createuser selfdestruct
+      psql -c "ALTER USER selfdestruct WITH PASSWORD 'selfdestruct';"
+      createdb -O selfdestruct self-destruct-dev
       lein migrate
     #+END_SRC
 
-    JDBC connections typically need a username/password (peer auth via Unix sockets is not used). Update ~profiles.clj~ and ~DATABASE_URL~ to match your local Postgres role.
+    If you use a different role, update ~:database-url~ in ~profiles.clj~ (and
+    export ~DATABASE_URL~ if you override it in the shell). JDBC connections use
+    TCP auth; peer auth via Unix sockets is not used.
 
-*** One alias to rule them all
+*** Run the app
 
-    This alias should do all that is necessary in one step for local development, once migrations have been run.
+    After migrations have been applied:
 
     #+BEGIN_SRC sh
       lein dev
     #+END_SRC
 
-*** Running the local development web server
+    That starts Garden CSS auto-compile and the Ring server (default port 8000).
 
-    To start a web server for local live development of the application, run:
-
-    #+BEGIN_SRC sh
-      lein ring server
-    #+END_SRC
-
-*** Automatically Recompile CSS File on Changes
+    Equivalent pieces if you prefer to run them separately:
 
     #+BEGIN_SRC sh
       lein garden auto
+      lein ring server
     #+END_SRC
 
 *** Running Tests
@@ -56,6 +64,11 @@
     #+BEGIN_SRC sh
       ./run-tests-local.sh
     #+END_SRC
+
+    This recreates ~self-destruct-test~, runs migrations, then ~lein test~.
+    Ensure the JDBC role in ~profiles.clj~ / ~DATABASE_URL~ can create that database
+    (or create it yourself and point ~DATABASE_URL~ at it).
+
 
 ** Continuous Integration
 
@@ -65,29 +78,27 @@
 
 ** Database Migrations
 
-   - the clojure migratus library is used to handle db schema changes.
-   - migrations are located in the ~resources/migrations~ folder.
-   - to create a new migration ~lein migratus create <descriptive-name>~ and then edit the ~up~ and ~down~ files created.
-   - migrations are applied via ~lein migrate~ (local; runs the app ~--migrate~ CLI) or ~java -jar self-destruct.jar --migrate~ (production / Heroku release phase).
-   - for local development set ~DATABASE_URL~ to a JDBC URL Postgres will accept over TCP.
-   - ~SESSION_COOKIE_KEY~ should be a 16-character/byte secret (Ring cookie session store).
+   - Migratus handles schema changes; files live in ~resources/migrations~.
+   - Create a migration with ~lein migratus create <descriptive-name>~, then edit the ~up~ / ~down~ SQL.
+   - Apply migrations with ~lein migrate~ (runs the app ~--migrate~ CLI) or
+     ~java -jar self-destruct.jar --migrate~ (production / Heroku release phase).
 
 
 ** Production Setup
 
-   you'll need to load the following environment variables in your production environment:
+   Required environment variables:
 
    - ~DATABASE_URL~
    - ~DATABASE_ENCRYPTION_KEY~
    - ~PORT~
-   - ~SESSION_COOKIE_KEY~
+   - ~SESSION_COOKIE_KEY~ (exactly 16 characters/bytes)
 
-   optionally you can customize the following variables in your production environment:
+   Optional:
 
-   - ~REPORTED_LOG_LEVEL~ (defaults to "warn"; sets min level to write to production log when using Sentry)
-   - ~LOG_APPENDER~ (options "println" "sentry")
-   - ~SENTRY_DSN~ (required only if you've set log-appender to "sentry")
-   - ~ENABLE_WORKERS~ (defaults to enabled; set to ~false~ to disable background workers)
+   - ~REPORTED_LOG_LEVEL~ (defaults to ~warn~; min level for Sentry when enabled)
+   - ~LOG_APPENDER~ (~println~ or ~sentry~)
+   - ~SENTRY_DSN~ (required only when ~LOG_APPENDER=sentry~)
+   - ~ENABLE_WORKERS~ (defaults to enabled; set ~false~ to disable background workers)
    - ~MESSAGE_EXPIRE_MINUTES~ (defaults to ~1440~ / 24 hours)
    - ~WORKER_DELAY_SECONDS~ (defaults to ~3600~ / 1 hour)
 
