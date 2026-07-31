@@ -3,7 +3,7 @@
 echo "Creating production environment file..."
 
 # Check if we're in the right directory
-if [ ! -f "project.clj" ]; then
+if [ ! -f "deps.edn" ]; then
     echo "Error: Please run this script from the self-destruct project root directory"
     exit 1
 fi
@@ -60,8 +60,8 @@ WORKER_DELAY_SECONDS=3600
 REPORTED_LOG_LEVEL=warn
 LOG_APPENDER=println
 
-# Optional: Ring secure-site-defaults when terminating TLS at nginx
-# SECURE_DEFAULTS=true
+# Ring secure-site-defaults (TLS terminated at nginx)
+SECURE_DEFAULTS=true
 
 # Optional reference (not read by the app)
 APP_BASE_URL=https://${DOMAIN}

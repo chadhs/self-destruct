@@ -5,7 +5,7 @@
 ** Prerequisites
 
    - [[https://adoptium.net/][Java]] 17 or newer (21 recommended; required by Ring / Jetty 12)
-   - [[https://github.com/technomancy/leiningen][Leiningen]] 2.11.0 or newer (2.12.x recommended)
+   - [[https://clojure.org/guides/install_clojure][Clojure CLI]] (~clj~ / ~clojure~)
    - PostgreSQL available over TCP with a role/password your JDBC URL can use
 
 
@@ -13,13 +13,14 @@
 
 *** Set Environment Variables & Secrets
 
-    Copy the example file, then edit values to match your machine:
+    Copy the local example, then edit values to match your machine:
 
     #+BEGIN_SRC sh
-      cp profiles_example.clj profiles.clj
+      cp dev.env.example .env
     #+END_SRC
 
-    ~profiles.clj~ is gitignored. The example includes local defaults for:
+    ~.env~ is gitignored. Use ~./scripts/with-env.sh ...~ to load it before
+    ~clj~ commands, or export the variables in your shell. The example includes:
 
     - ~DATABASE_URL~ — JDBC URL with user/password (not Unix peer auth)
     - ~DATABASE_ENCRYPTION_KEY~ — key used to encrypt messages at rest
@@ -28,26 +29,25 @@
 
 *** Setup Local Development Database
 
-    Create a Postgres role and database that match ~profiles.clj~ (example uses
-    user/password ~selfdestruct~ / ~selfdestruct~):
+    Create a Postgres role and database that match ~dev.env.example~ (user/password
+    ~selfdestruct~ / ~selfdestruct~):
 
     #+BEGIN_SRC sh
       createuser selfdestruct
       psql -c "ALTER USER selfdestruct WITH PASSWORD 'selfdestruct';"
       createdb -O selfdestruct self-destruct-dev
-      lein migrate
+      ./scripts/with-env.sh clj -M:migrate
     #+END_SRC
 
-    If you use a different role, update ~:database-url~ in ~profiles.clj~ (and
-    export ~DATABASE_URL~ if you override it in the shell). JDBC connections use
-    TCP auth; peer auth via Unix sockets is not used.
+    If you use a different role, update ~DATABASE_URL~ in ~.env~. JDBC connections
+    use TCP auth; peer auth via Unix sockets is not used.
 
 *** Run the app
 
     After migrations have been applied:
 
     #+BEGIN_SRC sh
-      lein dev
+      ./scripts/with-env.sh clj -M:dev-main
     #+END_SRC
 
     That starts Garden CSS auto-compile and the Ring server (default port 8000).
@@ -55,9 +55,12 @@
     Equivalent pieces if you prefer to run them separately:
 
     #+BEGIN_SRC sh
-      lein garden auto
-      lein ring server
+      ./scripts/with-env.sh clj -M:css watch
+      ./scripts/with-env.sh clj -M:run -- --port 8000
     #+END_SRC
+
+    ~:run~ uses the production entrypoint (~-main~). ~:dev-main~ uses
+    ~-dev-main~ with Ring reload.
 
 *** Running Tests
 
@@ -65,28 +68,35 @@
       ./run-tests-local.sh
     #+END_SRC
 
-    This recreates ~self-destruct-test~, runs migrations, then ~lein test~.
-    Ensure the JDBC role in ~profiles.clj~ / ~DATABASE_URL~ can create that database
-    (or create it yourself and point ~DATABASE_URL~ at it).
+    This recreates ~self-destruct-test~, runs migrations, then ~clj -M:test~.
+    Ensure your Postgres role can create that database (or create it yourself and
+    point ~DATABASE_URL~ at it).
 
 
 ** Continuous Integration
 
    Pull requests and pushes to ~master~ run on GitHub Actions (~.github/workflows/ci.yml~):
-   Postgres service, ~lein migrate~, then ~lein test~.
+   Postgres service, ~clj -M:migrate~, ~clj -M:test~, and an uberjar build.
 
 
 ** Database Migrations
 
    - Migratus handles schema changes; files live in ~resources/migrations~.
-   - Create a migration with ~lein migratus create <descriptive-name>~, then edit the ~up~ / ~down~ SQL.
-   - Apply migrations with ~lein migrate~ (runs the app ~--migrate~ CLI) or
+   - Create a new pair of ~*.up.sql~ / ~*.down.sql~ files under ~resources/migrations~
+     (timestamp prefix, e.g. ~20260731120000-add-thing.up.sql~).
+   - Apply migrations with ~./scripts/with-env.sh clj -M:migrate~ or
      ~java -jar target/self-destruct.jar --migrate~ in production.
 
 
-** Production Setup
+** Production Build
 
-   Primary target is a FreeBSD home server. See [[file:DEPLOYMENT_FREEBSD.md][DEPLOYMENT_FREEBSD.md]]
+   #+BEGIN_SRC sh
+     clj -T:build uber
+   #+END_SRC
+
+   Writes ~target/self-destruct.jar~ (compiles Garden CSS first, then AOT + uberjar).
+
+   Primary deploy target is a FreeBSD home server. See [[file:DEPLOYMENT_FREEBSD.md][DEPLOYMENT_FREEBSD.md]]
    for install, ~rc.d~, nginx, certbot, and backup scripts under ~scripts/~.
 
    Required environment variables (also listed in [[file:.env.example][.env.example]]):

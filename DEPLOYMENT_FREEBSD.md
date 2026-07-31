@@ -1,7 +1,7 @@
 # self-destruct FreeBSD Deployment
 
 Deploy self-destruct on a FreeBSD home server using the same pattern as
-DoThisWeek: dedicated app user, PostgreSQL, `.env`, Leiningen uberjar, `rc.d`
+DoThisWeek: dedicated app user, PostgreSQL, `.env`, Clojure CLI uberjar, `rc.d`
 service, nginx reverse proxy, certbot, and daily DB backups.
 
 ## Assumptions
@@ -18,17 +18,14 @@ service, nginx reverse proxy, certbot, and daily DB backups.
 ## 1. Install Java Runtime and Build Tools
 
 ```sh
-sudo pkg install openjdk21 git
+sudo pkg install openjdk21 git clojure
 ```
-
-Install Leiningen if it is not already on the system (e.g. `sudo pkg install
-leiningen`, or place a `lein` script on `PATH`).
 
 Verify:
 
 ```sh
 /usr/local/openjdk21/bin/java -version
-lein version
+clj -Sdescribe
 ```
 
 The deployment scripts force `JAVA_HOME=/usr/local/openjdk21` and put
@@ -109,8 +106,8 @@ sudo -u selfdestruct sh -c 'cd /home/selfdestruct/self-destruct && ./scripts/bui
 
 This:
 
-- Fetches dependencies with `lein deps`
-- Builds `target/self-destruct.jar` with `lein uberjar`
+- Fetches dependencies with `clojure -P`
+- Builds `target/self-destruct.jar` with `clojure -T:build uber`
 - Runs migrations with `java -jar target/self-destruct.jar --migrate`
 
 Optional local server test from the FreeBSD host:
@@ -296,5 +293,5 @@ curl -s https://your.domain.example/health
 | Backup log | /var/log/selfdestruct-backup.log |
 | Backup time | 3:45 AM daily |
 | Backup retention | 30 days |
-| Build | `lein uberjar` |
+| Build | `clojure -T:build uber` |
 | Migrate | `java -jar target/self-destruct.jar --migrate` |
