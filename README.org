@@ -97,8 +97,8 @@
 
    Writes ~target/self-destruct.jar~ (compiles Garden CSS first, then AOT + uberjar).
 
-   Primary deploy target is a FreeBSD home server. See [[file:DEPLOYMENT_FREEBSD.md][DEPLOYMENT_FREEBSD.md]]
-   for install, ~rc.d~, nginx, certbot, and backup scripts under ~scripts/~.
+   For FreeBSD production deploy (app user, ~rc.d~, nginx, certbot, backups), see
+   [[file:DEPLOYMENT_FREEBSD.md][DEPLOYMENT_FREEBSD.md]] and the scripts under ~scripts/~.
 
    Required environment variables (also listed in [[file:.env.example][.env.example]]):
 

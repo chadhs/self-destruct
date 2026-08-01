@@ -1,19 +1,18 @@
 # self-destruct FreeBSD Deployment
 
-Deploy self-destruct on a FreeBSD home server using the same pattern as
-DoThisWeek: dedicated app user, PostgreSQL, `.env`, Clojure CLI uberjar, `rc.d`
-service, nginx reverse proxy, certbot, and daily DB backups.
+Deploy self-destruct on FreeBSD with a dedicated app user, PostgreSQL, `.env`,
+Clojure CLI uberjar, `rc.d` service, nginx reverse proxy, certbot, and daily DB
+backups.
 
 ## Assumptions
 
-- PostgreSQL, nginx, certbot, firewall rules, and (optionally) Cloudflare DDNS
-  are already available on the server.
+- PostgreSQL, nginx, certbot, and basic firewall rules are available (or you will
+  install them as you go).
 - `sudo` is available.
-- The server has outbound HTTPS for GitHub, Maven/Clojars, Cloudflare, and
-  Let's Encrypt.
+- The server has outbound HTTPS for GitHub, Maven/Clojars, and Let's Encrypt.
 - App path is `/home/selfdestruct/self-destruct`.
 - App user is `selfdestruct`.
-- App port is `4003` (DoThisWeek uses `4002`).
+- App port is `4003`.
 
 ## 1. Install Java Runtime and Build Tools
 
@@ -75,7 +74,7 @@ psql -U selfdestruct -h localhost selfdestruct_prod
 ```
 
 If needed, update `pg_hba.conf` to allow `md5` or `scram-sha-256`
-authentication for localhost connections, matching the other deployed apps.
+authentication for localhost TCP connections.
 
 ## 4. Create Production Environment
 
@@ -168,29 +167,15 @@ sudo sysrc nginx_enable="YES"
 sudo service nginx start
 ```
 
-## 8. Configure DNS and Cloudflare DDNS
+## 8. Configure DNS
 
-In Cloudflare (or your DNS provider):
+At your DNS provider:
 
-- Create an A record for `@` pointing to the server public IP
+- Create an A (or AAAA) record for the apex hostname pointing at the server
 - Prefer a CNAME for `www` pointing at the apex hostname
-- Keep records DNS-only unless you intentionally want a CDN proxy
 
-If you already run a shared Cloudflare DDNS script on this host, add another
-zone entry for this domain (same pattern as DoThisWeek / other apps). Example:
-
-```sh
-sudo sysrc cloudflare_ddns_zoneN_id="YOUR_ZONE_ID"
-sudo sysrc cloudflare_ddns_zoneN_record_id="YOUR_RECORD_ID"
-sudo sysrc cloudflare_ddns_zoneN_name="your.domain.example"
-```
-
-Then update the DDNS script to call `process_zone` for the new zone and verify:
-
-```sh
-sudo /usr/local/bin/cloudflare-ddns.sh
-tail /var/log/cloudflare-ddns.log
-```
+If the server has a dynamic public IP, configure whatever DDNS mechanism you
+already use so the apex record stays current before requesting certificates.
 
 ## 9. Configure HTTPS
 
@@ -208,7 +193,7 @@ Verify HTTPS:
 curl -I https://your.domain.example
 ```
 
-Certbot renewal should already be configured if other apps use it. Verify:
+Confirm certbot renewal is scheduled (or set it up), then dry-run:
 
 ```sh
 sudo certbot renew --dry-run
