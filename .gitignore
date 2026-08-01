@@ -4,11 +4,9 @@
 /checkouts/
 /resources/public/css/
 .cpcache/
-.lein-*
 .nrepl-port
 *.jar
 *.class
 pom.xml
 pom.xml.asc
-profiles.clj
 .env

@@ -29,7 +29,6 @@ jobs:
           --health-retries 5
 
     env:
-      LEIN_ROOT: "true"
       JVM_OPTS: -Xmx2g
       DATABASE_URL: jdbc:postgresql://localhost:5432/self-destruct-test?user=selfdestruct&password=selfdestruct
       DATABASE_ENCRYPTION_KEY: changemedbkey2
@@ -47,25 +46,30 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Set up Clojure / Leiningen
+      - name: Set up Clojure CLI
         uses: DeLaGuardo/setup-clojure@13.6.1
         with:
-          # 2.13.0 currently fails to install via setup-clojure; stay on 2.12.x
-          lein: 2.12.0
+          cli: 1.12.5.1664
 
-      - name: Cache Maven dependencies
+      - name: Cache Maven / Clojure deps
         uses: actions/cache@v4
         with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-m2-${{ hashFiles('project.clj') }}
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+            .cpcache
+          key: ${{ runner.os }}-clj-${{ hashFiles('deps.edn') }}
           restore-keys: |
-            ${{ runner.os }}-m2-
+            ${{ runner.os }}-clj-
 
       - name: Install dependencies
-        run: lein deps
+        run: clojure -P -M:test:dev:build
 
       - name: Run database migrations
-        run: lein migrate
+        run: clojure -M:migrate
 
       - name: Run tests
-        run: lein test
+        run: clojure -M:test
+
+      - name: Build uberjar
+        run: clojure -T:build uber

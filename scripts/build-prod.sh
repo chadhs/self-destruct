@@ -19,7 +19,7 @@ if ! "${JAVA_HOME}/bin/java" -version 2>&1 | grep -q 'version "21'; then
     exit 1
 fi
 
-if [ ! -f "project.clj" ]; then
+if [ ! -f "deps.edn" ]; then
     echo "Error: Please run this script from the self-destruct project root directory"
     exit 1
 fi
@@ -29,11 +29,14 @@ if [ ! -f ".env" ]; then
     exit 1
 fi
 
-if ! command -v lein >/dev/null 2>&1; then
-    echo "Error: lein not found on PATH"
-    echo "Install Leiningen (e.g. sudo pkg install leiningen) or place lein in PATH"
+if ! command -v clojure >/dev/null 2>&1 && ! command -v clj >/dev/null 2>&1; then
+    echo "Error: clojure/clj not found on PATH"
+    echo "Install the Clojure CLI (e.g. sudo pkg install clojure)"
     exit 1
 fi
+
+CLJ_CMD="clojure"
+command -v clojure >/dev/null 2>&1 || CLJ_CMD="clj"
 
 echo "Loading environment variables..."
 while IFS= read -r line || [ -n "$line" ]; do
@@ -56,14 +59,14 @@ while IFS= read -r line || [ -n "$line" ]; do
 done < .env
 
 echo "Fetching Clojure dependencies..."
-lein deps
+"$CLJ_CMD" -P -M:build
 if [ $? -ne 0 ]; then
     echo "Error: Failed to fetch dependencies"
     exit 1
 fi
 
 echo "Building uberjar..."
-lein uberjar
+"$CLJ_CMD" -T:build uber
 if [ $? -ne 0 ]; then
     echo "Error: Failed to build uberjar"
     exit 1

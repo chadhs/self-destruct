@@ -1,34 +1,30 @@
 # self-destruct FreeBSD Deployment
 
-Deploy self-destruct on a FreeBSD home server using the same pattern as
-DoThisWeek: dedicated app user, PostgreSQL, `.env`, Leiningen uberjar, `rc.d`
-service, nginx reverse proxy, certbot, and daily DB backups.
+Deploy self-destruct on FreeBSD with a dedicated app user, PostgreSQL, `.env`,
+Clojure CLI uberjar, `rc.d` service, nginx reverse proxy, certbot, and daily DB
+backups.
 
 ## Assumptions
 
-- PostgreSQL, nginx, certbot, firewall rules, and (optionally) Cloudflare DDNS
-  are already available on the server.
+- PostgreSQL, nginx, certbot, and basic firewall rules are available (or you will
+  install them as you go).
 - `sudo` is available.
-- The server has outbound HTTPS for GitHub, Maven/Clojars, Cloudflare, and
-  Let's Encrypt.
+- The server has outbound HTTPS for GitHub, Maven/Clojars, and Let's Encrypt.
 - App path is `/home/selfdestruct/self-destruct`.
 - App user is `selfdestruct`.
-- App port is `4003` (DoThisWeek uses `4002`).
+- App port is `4003`.
 
 ## 1. Install Java Runtime and Build Tools
 
 ```sh
-sudo pkg install openjdk21 git
+sudo pkg install openjdk21 git clojure
 ```
-
-Install Leiningen if it is not already on the system (e.g. `sudo pkg install
-leiningen`, or place a `lein` script on `PATH`).
 
 Verify:
 
 ```sh
 /usr/local/openjdk21/bin/java -version
-lein version
+clj -Sdescribe
 ```
 
 The deployment scripts force `JAVA_HOME=/usr/local/openjdk21` and put
@@ -78,7 +74,7 @@ psql -U selfdestruct -h localhost selfdestruct_prod
 ```
 
 If needed, update `pg_hba.conf` to allow `md5` or `scram-sha-256`
-authentication for localhost connections, matching the other deployed apps.
+authentication for localhost TCP connections.
 
 ## 4. Create Production Environment
 
@@ -109,8 +105,8 @@ sudo -u selfdestruct sh -c 'cd /home/selfdestruct/self-destruct && ./scripts/bui
 
 This:
 
-- Fetches dependencies with `lein deps`
-- Builds `target/self-destruct.jar` with `lein uberjar`
+- Fetches dependencies with `clojure -P`
+- Builds `target/self-destruct.jar` with `clojure -T:build uber`
 - Runs migrations with `java -jar target/self-destruct.jar --migrate`
 
 Optional local server test from the FreeBSD host:
@@ -171,29 +167,20 @@ sudo sysrc nginx_enable="YES"
 sudo service nginx start
 ```
 
-## 8. Configure DNS and Cloudflare DDNS
+## 8. Configure DNS
 
-In Cloudflare (or your DNS provider):
+At your DNS provider:
 
-- Create an A record for `@` pointing to the server public IP
+- Create an A (or AAAA) record for the apex hostname pointing at the server
 - Prefer a CNAME for `www` pointing at the apex hostname
-- Keep records DNS-only unless you intentionally want a CDN proxy
+- If your DNS provider offers a CDN/proxy toggle (e.g. Cloudflare orange-cloud),
+  keep records DNS-only until certificates are issued, unless you intentionally
+  want that proxy in front of nginx
 
-If you already run a shared Cloudflare DDNS script on this host, add another
-zone entry for this domain (same pattern as DoThisWeek / other apps). Example:
-
-```sh
-sudo sysrc cloudflare_ddns_zoneN_id="YOUR_ZONE_ID"
-sudo sysrc cloudflare_ddns_zoneN_record_id="YOUR_RECORD_ID"
-sudo sysrc cloudflare_ddns_zoneN_name="your.domain.example"
-```
-
-Then update the DDNS script to call `process_zone` for the new zone and verify:
-
-```sh
-sudo /usr/local/bin/cloudflare-ddns.sh
-tail /var/log/cloudflare-ddns.log
-```
+If the server has a dynamic public IP, configure DDNS so the apex record stays
+current before requesting certificates. If `www` is an A/AAAA record instead of
+a CNAME, manage that record with DDNS too — otherwise it can go stale when the
+IP changes.
 
 ## 9. Configure HTTPS
 
@@ -211,11 +198,14 @@ Verify HTTPS:
 curl -I https://your.domain.example
 ```
 
-Certbot renewal should already be configured if other apps use it. Verify:
+Confirm certbot renewal is scheduled (or set it up), then dry-run:
 
 ```sh
 sudo certbot renew --dry-run
 ```
+
+Production `.env` sets `SECURE_DEFAULTS=true`, so prefer finishing HTTPS before
+relying on browser sessions over plain HTTP.
 
 ## 10. Configure Database Backups
 
@@ -296,5 +286,5 @@ curl -s https://your.domain.example/health
 | Backup log | /var/log/selfdestruct-backup.log |
 | Backup time | 3:45 AM daily |
 | Backup retention | 30 days |
-| Build | `lein uberjar` |
+| Build | `clojure -T:build uber` |
 | Migrate | `java -jar target/self-destruct.jar --migrate` |

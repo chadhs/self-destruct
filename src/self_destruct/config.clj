@@ -1,5 +1,7 @@
 (ns self-destruct.config
-  (:require [environ.core    :as environ]
+  ;; self-destruct.env must load first so .env is available before environ init
+  (:require [self-destruct.env]
+            [environ.core    :as environ]
             [migratus.core   :as migratus]
             [taoensso.timbre :as timbre])
   (:import [java.nio.charset StandardCharsets]))

@@ -116,7 +116,7 @@
   (let [parsed (parse-opts args cli-options)
         port   (get-in parsed [:options :port])]
     (config/configure-logging)
-    ;; honor --help/--migrate in dev as well (lein run defaults to -dev-main)
+    ;; honor --help/--migrate in dev as well (clj -M:dev-main)
     (if-let [exit-code (handle-cli-options parsed)]
       (System/exit exit-code)
       (do
