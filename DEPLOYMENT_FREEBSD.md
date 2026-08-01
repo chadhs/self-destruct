@@ -173,9 +173,14 @@ At your DNS provider:
 
 - Create an A (or AAAA) record for the apex hostname pointing at the server
 - Prefer a CNAME for `www` pointing at the apex hostname
+- If your DNS provider offers a CDN/proxy toggle (e.g. Cloudflare orange-cloud),
+  keep records DNS-only until certificates are issued, unless you intentionally
+  want that proxy in front of nginx
 
-If the server has a dynamic public IP, configure whatever DDNS mechanism you
-already use so the apex record stays current before requesting certificates.
+If the server has a dynamic public IP, configure DDNS so the apex record stays
+current before requesting certificates. If `www` is an A/AAAA record instead of
+a CNAME, manage that record with DDNS too — otherwise it can go stale when the
+IP changes.
 
 ## 9. Configure HTTPS
 
@@ -198,6 +203,9 @@ Confirm certbot renewal is scheduled (or set it up), then dry-run:
 ```sh
 sudo certbot renew --dry-run
 ```
+
+Production `.env` sets `SECURE_DEFAULTS=true`, so prefer finishing HTTPS before
+relying on browser sessions over plain HTTP.
 
 ## 10. Configure Database Backups
 
